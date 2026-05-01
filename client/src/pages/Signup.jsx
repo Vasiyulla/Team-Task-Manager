@@ -23,11 +23,13 @@ const Signup = () => {
     hasNumber: /[0-9]/.test(password),
     isLongEnough: password?.length >= 6,
   };
+  
+  const role = watch('role');
 
   const onSubmit = async (data) => {
     try {
       setIsLoading(true);
-      await signup(data.name, data.email, data.password, data.role || 'member');
+      await signup(data.name, data.email, data.password, data.role || 'member', data.adminSecret || '');
       navigate('/dashboard');
     } catch (error) {
       console.error('Signup failed:', error);
@@ -139,6 +141,16 @@ const Signup = () => {
                 Admins can create projects and manage team members
               </p>
             </div>
+
+            {role === 'admin' && (
+              <Input
+                label="Admin Secret Key"
+                type="password"
+                placeholder="Enter secret key to register as admin"
+                {...register('adminSecret')}
+                error={errors.adminSecret?.message}
+              />
+            )}
 
             <Button
               type="submit"

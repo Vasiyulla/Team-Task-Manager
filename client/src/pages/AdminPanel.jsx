@@ -39,7 +39,7 @@ const AdminPanel = () => {
 
   return (
     <MainLayout>
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-3 sm:p-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -122,7 +122,8 @@ const AdminPanel = () => {
             </div>
           ) : users && users.length > 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              {/* Desktop Table */}
+              <table className="w-full hidden md:table">
                 <thead className="border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                   <tr>
                     <th className="px-6 py-3 text-left text-sm font-semibold">Name</th>
@@ -164,17 +165,17 @@ const AdminPanel = () => {
                             {user.role}
                           </Badge>
                         </td>
-                        <td className="px-6 py-4 text-sm">
+                        <td className="px-6 py-4 text-sm text-center">
                           <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full text-xs font-semibold">
-                            {totalTasks} tasks
+                            {totalTasks}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm">
+                        <td className="px-6 py-4 text-sm text-center">
                           <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-semibold">
                             {pendingTasks}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm">
+                        <td className="px-6 py-4 text-sm text-center">
                           <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-semibold">
                             {completedTasks}
                           </span>
@@ -197,6 +198,61 @@ const AdminPanel = () => {
                   })}
                 </tbody>
               </table>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden divide-y divide-slate-200 dark:divide-slate-700">
+                {users.map((user) => {
+                  const totalTasks = getUserTaskCount(user.id);
+                  const completedTasks = getUserCompletedCount(user.id);
+                  const pendingTasks = getUserPendingCount(user.id);
+                  const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+                  return (
+                    <div key={user.id} className="p-4 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Avatar name={user.name} size="sm" />
+                          <div>
+                            <p className="font-bold text-sm">{user.name}</p>
+                            <p className="text-xs text-slate-500">{user.email}</p>
+                          </div>
+                        </div>
+                        <Badge variant={user.role === 'admin' ? 'primary' : 'secondary'}>
+                          {user.role}
+                        </Badge>
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="bg-blue-50 dark:bg-blue-900/10 p-2 rounded-lg text-center">
+                          <p className="text-[10px] uppercase font-bold text-blue-600 dark:text-blue-400">Total</p>
+                          <p className="text-sm font-bold">{totalTasks}</p>
+                        </div>
+                        <div className="bg-amber-50 dark:bg-amber-900/10 p-2 rounded-lg text-center">
+                          <p className="text-[10px] uppercase font-bold text-amber-600 dark:text-amber-400">Pending</p>
+                          <p className="text-sm font-bold">{pendingTasks}</p>
+                        </div>
+                        <div className="bg-green-50 dark:bg-green-900/10 p-2 rounded-lg text-center">
+                          <p className="text-[10px] uppercase font-bold text-green-600 dark:text-green-400">Done</p>
+                          <p className="text-sm font-bold">{completedTasks}</p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-bold uppercase text-slate-500">
+                          <span>Workload Progress</span>
+                          <span>{progress}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full transition-all"
+                            style={{ width: `${progress}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           ) : (
             <div className="p-12 text-center">

@@ -28,6 +28,9 @@ router.get('/:id', validateUUID, taskController.getTask);
 // Assign task (admin or project owner)
 router.patch('/:id/assign', validateUUID, taskController.assignTask);
 
+// Delegate team task (Team Lead only)
+router.patch('/:id/delegate', validateUUID, taskController.delegateTask);
+
 // Admin only routes
 router.post('/', restrictTo('admin'), validateCreateTask, taskController.createTask);
 router.patch('/:id', validateUUID, validateUpdateTask, taskController.updateTask);

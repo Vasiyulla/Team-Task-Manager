@@ -17,7 +17,7 @@ const Task = sequelize.define('Task', {
     allowNull: true,
   },
   status: {
-    type: DataTypes.ENUM('todo', 'in-progress', 'done', 'overdue'),
+    type: DataTypes.ENUM('todo', 'in-progress', 'in-review', 'done', 'overdue'),
     defaultValue: 'todo',
     allowNull: false,
   },
@@ -44,6 +44,54 @@ const Task = sequelize.define('Task', {
     },
     onDelete: 'SET NULL',
   },
+  teamId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'teams',
+      key: 'id',
+    },
+    onDelete: 'SET NULL',
+  },
+  taskType: {
+    type: DataTypes.ENUM('individual', 'team'),
+    defaultValue: 'individual',
+    allowNull: false,
+  },
+  internalAssigneeId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+    onDelete: 'SET NULL',
+    comment: 'For team tasks: internal delegation to team member by lead',
+  },
+  requiresLeadApproval: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    comment: 'If true, team lead must approve completion',
+  },
+  delegatedBy: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'users',
+      key: 'id',
+    },
+    onDelete: 'SET NULL',
+    comment: 'Team lead who delegated this task internally',
+  },
+  dependsOnTaskId: {
+    type: DataTypes.UUID,
+    allowNull: true,
+    references: {
+      model: 'tasks',
+      key: 'id',
+    },
+    onDelete: 'SET NULL',
+  },
   dueDate: {
     type: DataTypes.DATE,
     allowNull: true,
@@ -62,10 +110,49 @@ const Task = sequelize.define('Task', {
   indexes: [
     { fields: ['projectId'] },
     { fields: ['assigneeId'] },
+    { fields: ['teamId'] },
+    { fields: ['taskType'] },
     { fields: ['status'] },
     { fields: ['priority'] },
     { fields: ['dueDate'] },
+    { fields: ['internalAssigneeId'] },
+    { fields: ['delegatedBy'] },
   ],
+  hooks: {
+    beforeCreate: (task) => {
+      // Validate: Either assigneeId OR teamId, not both, not neither
+      if (task.taskType === 'individual' && !task.assigneeId && !task.teamId) {
+        throw new Error('Individual task must have assigneeId');
+      }
+      if (task.taskType === 'team' && !task.teamId) {
+        throw new Error('Team task must have teamId');
+      }
+      // Relaxed validation to allow both teamId and assigneeId for enterprise model
+      if (!task.assigneeId && !task.teamId) {
+        throw new Error('Task must have either an assigneeId or a teamId');
+      }
+      // Only team tasks can have internal delegation
+      if (task.taskType === 'individual' && task.internalAssigneeId) {
+        throw new Error('Individual tasks cannot have internal assignees');
+      }
+    },
+    beforeUpdate: (task) => {
+      // Same validation on update
+      if (task.taskType === 'individual' && !task.assigneeId && !task.teamId) {
+        throw new Error('Individual task must have assigneeId');
+      }
+      if (task.taskType === 'team' && !task.teamId) {
+        throw new Error('Team task must have teamId');
+      }
+      // Relaxed validation on update
+      if (!task.assigneeId && !task.teamId) {
+        throw new Error('Task must have either an assigneeId or a teamId');
+      }
+      if (task.taskType === 'individual' && task.internalAssigneeId) {
+        throw new Error('Individual tasks cannot have internal assignees');
+      }
+    },
+  },
 });
 
 export default Task;

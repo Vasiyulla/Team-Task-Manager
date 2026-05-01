@@ -39,10 +39,10 @@ const Profile = () => {
 
   return (
     <MainLayout>
-      <div className="p-6 max-w-2xl mx-auto">
+      <div className="p-3 sm:p-6 max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2 flex items-center gap-3">
             <User size={32} /> Profile Settings
           </h1>
           <p className="text-slate-600 dark:text-slate-400">
@@ -53,7 +53,7 @@ const Profile = () => {
         {/* Avatar Section */}
         <Card className="p-6 mb-6">
           <h2 className="text-lg font-bold mb-4">Profile Picture</h2>
-          <div className="flex items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
             <Avatar name={user?.name} size="xl" />
             <div>
               <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">

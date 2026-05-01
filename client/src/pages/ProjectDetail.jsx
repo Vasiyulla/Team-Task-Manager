@@ -9,7 +9,9 @@ import Avatar from '../components/Avatar.jsx';
 import SkeletonLoader from '../components/SkeletonLoader.jsx';
 import AssignTaskModal from '../components/AssignTaskModal.jsx';
 import CreateTaskModal from '../components/CreateTaskModal.jsx';
-import { ArrowLeft, Plus, Search, Filter, UserPlus } from 'lucide-react';
+import BulkTeamTaskAssignModal from '../components/BulkTeamTaskAssignModal.jsx';
+import { bulkAssignTasksToTeam } from '../api/teamClient';
+import { ArrowLeft, Plus, Search, Filter, UserPlus, Users, AlertCircle } from 'lucide-react';
 
 const ProjectDetail = () => {
   const { id } = useParams();
@@ -22,6 +24,11 @@ const ProjectDetail = () => {
   const [tasks, setTasks] = useState([]);
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [createTaskStatus, setCreateTaskStatus] = useState('todo');
+  const [isBulkAssignOpen, setIsBulkAssignOpen] = useState(false);
+  
+  // Fetch teams for bulk assignment
+  const { data: teamsData } = useFetch('/teams');
+  const teams = teamsData || [];
 
   // Update tasks when project data changes
   React.useEffect(() => {
@@ -97,6 +104,16 @@ const ProjectDetail = () => {
     refetch();
   };
 
+  const handleBulkAssign = async (teamId, taskIds) => {
+    try {
+      await bulkAssignTasksToTeam(teamId, taskIds);
+      refetch();
+    } catch (err) {
+      console.error('Bulk assign failed:', err);
+      throw err;
+    }
+  };
+
   const columns = [
     { id: 'todo', title: 'To Do', color: 'bg-slate-100 dark:bg-slate-700/50' },
     { id: 'in-progress', title: 'In Progress', color: 'bg-blue-100 dark:bg-blue-900/30' },
@@ -106,32 +123,43 @@ const ProjectDetail = () => {
 
   return (
     <MainLayout>
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-3 sm:p-6 max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <button
                 onClick={() => navigate('/projects')}
-                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg shrink-0"
               >
                 <ArrowLeft size={20} />
               </button>
               <div
-                className="w-4 h-4 rounded-full"
+                className="w-4 h-4 rounded-full shrink-0"
                 style={{ backgroundColor: project.color }}
               />
-              <h1 className="text-3xl font-bold">{project.title}</h1>
+              <h1 className="text-xl sm:text-3xl font-bold truncate">{project.title}</h1>
             </div>
-            <Button
-              variant="primary"
-              onClick={() => handleOpenCreateTask('todo')}
-              className="gap-2"
-              id="create-task-btn"
-            >
-              <Plus size={18} />
-              New Task
-            </Button>
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Button
+                variant="secondary"
+                onClick={() => setIsBulkAssignOpen(true)}
+                className="gap-2 flex-1 sm:flex-none text-sm"
+                disabled={!tasks || tasks.length === 0}
+              >
+                <Users size={16} />
+                <span className="hidden sm:inline">Assign to</span> Team
+              </Button>
+              <Button
+                variant="primary"
+                onClick={() => handleOpenCreateTask('todo')}
+                className="gap-2 flex-1 sm:flex-none text-sm"
+                id="create-task-btn"
+              >
+                <Plus size={16} />
+                New Task
+              </Button>
+            </div>
           </div>
           <p className="text-slate-600 dark:text-slate-400">{project.description}</p>
         </div>
@@ -162,9 +190,9 @@ const ProjectDetail = () => {
         </div>
 
         {/* Kanban Board */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto pb-6">
+        <div className="flex lg:grid lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-auto pb-6 -mx-3 px-3 sm:mx-0 sm:px-0 snap-x snap-mandatory lg:snap-none">
           {columns.map(column => (
-            <div key={column.id} className="min-w-[300px]">
+            <div key={column.id} className="min-w-[280px] sm:min-w-[300px] snap-start lg:min-w-0">
               {/* Column Header */}
               <div className={`p-4 rounded-lg ${column.color} mb-4`}>
                 <div className="flex items-center justify-between">
@@ -183,6 +211,11 @@ const ProjectDetail = () => {
                     className="p-4 cursor-pointer hover:shadow-lg transition-shadow group"
                   >
                     <div onClick={() => navigate(`/tasks/${task.id}`)}>
+                      {task.dependency && task.dependency.status !== 'done' && (
+                        <div className="flex items-center gap-1 text-red-600 dark:text-red-400 text-[10px] font-bold mb-2">
+                          <AlertCircle size={12} /> BLOCKED
+                        </div>
+                      )}
                       <h3 className="font-semibold mb-3 line-clamp-2">{task.title}</h3>
                       <div className="flex items-center justify-between mb-3">
                         <Badge type="priority" variant={task.priority}>
@@ -254,6 +287,14 @@ const ProjectDetail = () => {
         projectId={id}
         onSuccess={handleTaskCreated}
         initialStatus={createTaskStatus}
+      />
+      {/* Bulk Team Assign Modal */}
+      <BulkTeamTaskAssignModal
+        isOpen={isBulkAssignOpen}
+        onClose={() => setIsBulkAssignOpen(false)}
+        tasks={tasks || []}
+        teams={teams}
+        onAssign={handleBulkAssign}
       />
     </MainLayout>
   );

@@ -3,7 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { connectDatabase } from './config/database.js';
-import { scheduleCronJobs } from './utils/cronJobs.js';
+import { scheduleCronJobs, runInitialOverdueCheck } from './utils/cronJobs.js';
 
 // Routes
 import authRoutes from './routes/authRoutes.js';
@@ -11,6 +11,8 @@ import projectRoutes from './routes/projectRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import commentRoutes from './routes/commentRoutes.js';
 import userRoutes from './routes/userRoutes.js';
+import teamRoutes from './routes/teamRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -46,6 +48,8 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/tasks', commentRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // ========================================
 // Health Check
@@ -133,7 +137,8 @@ const startServer = async () => {
 
     // Schedule cron jobs
     scheduleCronJobs();
-    console.log('✓ Cron jobs scheduled');
+    await runInitialOverdueCheck();
+    console.log('✓ Cron jobs scheduled and initial check completed');
 
     // Start listening
     app.listen(PORT, () => {

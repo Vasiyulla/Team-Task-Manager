@@ -21,12 +21,25 @@ export const signup = async (req, res) => {
     // Hash password
     const passwordHash = await hashPassword(password);
 
+    // Handle role assignment and secret key check
+    let userRole = 'member'; // Default role
+    if (role === 'admin') {
+      const adminSecret = req.body.adminSecret;
+      if (adminSecret !== process.env.ADMIN_SIGNUP_KEY) {
+        return res.status(403).json({
+          success: false,
+          error: 'Invalid Admin Secret Key',
+        });
+      }
+      userRole = 'admin';
+    }
+
     // Create user
     const user = await User.create({
       name,
       email,
       passwordHash,
-      role: role || 'member',
+      role: userRole,
       avatar: name.substring(0, 2).toUpperCase(), // Initials
     });
 

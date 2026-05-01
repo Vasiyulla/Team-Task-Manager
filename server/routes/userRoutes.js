@@ -15,8 +15,8 @@ router.get('/me', userController.getMe);
 // Update current user profile
 router.patch('/me', userController.updateProfile);
 
-// Admin only routes
-router.get('/', restrictTo('admin'), userController.getAllUsers);
+// Global user list (available to all authenticated users for selection)
+router.get('/', userController.getAllUsers);
 router.get('/:id/workload', restrictTo('admin'), validateUUID, userController.getUserWorkload);
 router.get('/:id/projects', validateUUID, userController.getUserProjects);
 

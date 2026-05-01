@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useFetch } from '../hooks/useFetch.js';
 import MainLayout from '../layouts/MainLayout.jsx';
@@ -37,10 +38,10 @@ const Dashboard = () => {
 
   return (
     <MainLayout>
-      <div className="p-6 max-w-7xl mx-auto">
+      <div className="p-3 sm:p-6 max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Welcome back, {user?.name}! 👋</h1>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Welcome back, {user?.name}! 👋</h1>
           <p className="text-slate-600 dark:text-slate-400">
             Here's what's happening with your tasks today
           </p>
@@ -115,19 +116,31 @@ const Dashboard = () => {
               <SkeletonLoader count={3} type="task" />
             ) : myTasks.length > 0 ? (
               <div className="space-y-3">
-                {myTasks.map(task => (
-                  <div key={task.id} className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                    <p className="font-semibold text-sm truncate">{task.title}</p>
-                    <div className="flex items-center justify-between mt-2">
-                      <Badge type="priority" variant={task.priority}>
-                        {task.priority}
-                      </Badge>
-                      <Badge type="status" variant={task.status}>
-                        {task.status}
-                      </Badge>
-                    </div>
-                  </div>
-                ))}
+                {myTasks.map(task => {
+                  const isBlocked = task.dependency && task.dependency.status !== 'done';
+                  return (
+                    <Link key={task.id} to={`/tasks/${task.id}`} className="block transition-transform hover:scale-[1.01]">
+                      <div className={`p-3 rounded-lg border ${isBlocked ? 'bg-red-50/50 dark:bg-red-900/10 border-red-100 dark:border-red-900/20' : 'bg-slate-50 dark:bg-slate-700/50 border-transparent'}`}>
+                        <div className="flex items-center justify-between mb-1">
+                          <p className="font-semibold text-sm truncate">{task.title}</p>
+                          {isBlocked && (
+                            <span className="flex items-center gap-1 text-red-600 dark:text-red-400 text-[10px] font-bold">
+                              <AlertCircle size={10} /> BLOCKED
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <Badge type="priority" variant={task.priority}>
+                            {task.priority}
+                          </Badge>
+                          <Badge type="status" variant={task.status}>
+                            {task.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-slate-500 dark:text-slate-400 text-sm text-center py-8">

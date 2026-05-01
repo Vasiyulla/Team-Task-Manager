@@ -46,8 +46,13 @@ export const AuthProvider = ({ children }) => {
 
         // Try to get current user
         const response = await apiClient.get('/users/me');
-        setUser(response.data.data);
+        const currentUser = response.data.data;
+        setUser(currentUser);
         setIsAuthenticated(true);
+        
+        // Ensure localStorage is in sync
+        localStorage.setItem('userId', currentUser.id);
+        localStorage.setItem('userRole', currentUser.role);
       } catch (error) {
         // Token is invalid, clear and redirect
         localStorage.removeItem('accessToken');
@@ -64,7 +69,7 @@ export const AuthProvider = ({ children }) => {
   /**
    * Sign up new user
    */
-  const signup = useCallback(async (name, email, password, role = 'member') => {
+  const signup = useCallback(async (name, email, password, role = 'member', adminSecret = '') => {
     try {
       setLoading(true);
       const response = await apiClient.post('/auth/signup', {
@@ -72,10 +77,13 @@ export const AuthProvider = ({ children }) => {
         email,
         password,
         role,
+        adminSecret,
       });
 
       const { user: newUser, accessToken } = response.data.data;
       localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('userId', newUser.id);
+      localStorage.setItem('userRole', newUser.role);
       setUser(newUser);
       setIsAuthenticated(true);
       toast.success('Welcome! Account created successfully.');
@@ -102,6 +110,8 @@ export const AuthProvider = ({ children }) => {
 
       const { user: loggedInUser, accessToken } = response.data.data;
       localStorage.setItem('accessToken', accessToken);
+      localStorage.setItem('userId', loggedInUser.id);
+      localStorage.setItem('userRole', loggedInUser.role);
       setUser(loggedInUser);
       setIsAuthenticated(true);
       toast.success('Login successful');
@@ -126,6 +136,8 @@ export const AuthProvider = ({ children }) => {
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('accessToken');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userRole');
       setUser(null);
       setIsAuthenticated(false);
       setLoading(false);
