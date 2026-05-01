@@ -7,8 +7,8 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "start:prod": "npm run build:client && node server.js",
-    "build:client": "cd ../client && npm run build && cd ../server",
+    "start:prod": "npm run build:client && npm start",
+    "build:client": "cd ../client && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
