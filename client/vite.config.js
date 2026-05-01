@@ -12,6 +12,10 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
+<<<<<<< HEAD
+=======
+    reportCompressedSize: true,
+>>>>>>> 694940cc038c005a448088e1786890c2d1fab3f7
     rollupOptions: {
       output: {
         manualChunks: {
