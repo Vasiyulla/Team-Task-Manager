@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDatabase } from './config/database.js';
 import { scheduleCronJobs, runInitialOverdueCheck } from './utils/cronJobs.js';
 
@@ -17,8 +19,10 @@ import notificationRoutes from './routes/notificationRoutes.js';
 // Load environment variables
 dotenv.config();
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 5000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
 
 // ========================================
 // Middleware
@@ -38,6 +42,16 @@ app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Cookie parsing middleware
 app.use(cookieParser());
+
+// ========================================
+// Serve Static Files (React Build)
+// ========================================
+// In production, serve the built React client
+if (NODE_ENV === 'production') {
+  const clientDistPath = path.join(__dirname, '../client/dist');
+  app.use(express.static(clientDistPath));
+  console.log(`✓ Serving static files from: ${clientDistPath}`);
+}
 
 // ========================================
 // API Routes
@@ -62,6 +76,19 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+// ========================================
+// SPA Fallback Route (React Router)
+// ========================================
+// In production, serve index.html for all non-API routes (SPA)
+if (NODE_ENV === 'production') {
+  app.get('*', (req, res) => {
+    // Don't serve index.html for API routes
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+    }
+  });
+}
 
 // ========================================
 // Error Handling Middleware
