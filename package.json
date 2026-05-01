@@ -10,7 +10,7 @@
     "install-client": "npm install --prefix client",
     "install-all": "npm run install-server && npm run install-client",
     "build": "npm run install-all && cd server && npm run build:client",
-    "start": "npm run start:prod",
-    "start:prod": "cd server && npm run start:prod"
+    "start": "cd server && npm start",
+    "start:prod": "npm run install-all && cd server && npm run build:client && npm start"
   }
 }
