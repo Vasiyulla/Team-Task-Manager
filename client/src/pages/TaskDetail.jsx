@@ -34,7 +34,7 @@ const TaskDetail = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tasks/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/tasks/${id}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -73,7 +73,7 @@ const TaskDetail = () => {
 
   const fetchTeamMembers = async (teamId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/teams/${teamId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/teams/${teamId}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -89,7 +89,7 @@ const TaskDetail = () => {
 
   const handleDelegate = async (internalAssigneeId) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tasks/${id}/delegate`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/tasks/${id}/delegate`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ const TaskDetail = () => {
 
   const handleStatusChange = async (newStatus) => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tasks/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/tasks/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -146,7 +146,7 @@ const TaskDetail = () => {
       if (!id) return;
       try {
         setCommentsLoading(true);
-        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/tasks/${id}/comments`, {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || ''}/api/tasks/${id}/comments`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
           }
